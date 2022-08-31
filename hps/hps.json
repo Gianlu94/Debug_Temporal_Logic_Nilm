@@ -1,0 +1,22 @@
+{
+  "study_name": "study_local",
+  "seed": 0,
+  "trials": 100,
+  "sequences_search": [5, 7],
+  "deviation_search": [0.5, 10.5],
+  "skip_size_search": [100, 1000, 100],
+  "train_reduction_search": [5, 15, 5],
+  "predict_reduction_search": [10, 30, 10],
+  "cost_weights_search": {
+    "cw0": [1, 10],
+    "cw1": [1, 10],
+    "cw2": [1, 10],
+    "cw3": [1, 10],
+    "cw4": [1, 10]
+  },
+  "seq_weights_search": {
+    "sw0": [1, 10],
+    "sw1": [1, 10]
+  },
+  "no_event_weight_search": [1, 10]
+}

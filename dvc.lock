@@ -1,0 +1,331 @@
+schema: '2.0'
+stages:
+  image_build:
+    cmd: singularity build --fakeroot -F image/image.sif container/env.def && cp container/env.def
+      image/image.lock
+    deps:
+    - path: container/com.google.or-tools.msc
+      md5: f3660046375beba0907075a65598d9c5
+      size: 435
+    - path: container/env.def
+      md5: 5758b139f7b924725170a77578fd5a03
+      size: 581
+    outs:
+    - path: image/image.lock
+      md5: 5758b139f7b924725170a77578fd5a03
+      size: 581
+  ukdale_preproc:
+    cmd: singularity run image/image.sif bash scripts/download_ukdale.sh
+    deps:
+    - path: deps/seq2point/scripts/ukdale_dataset_extraction.py
+      md5: 6194708cdd81890cb2acd1219534468a
+      size: 5079
+    - path: image/image.lock
+      md5: 5758b139f7b924725170a77578fd5a03
+      size: 581
+    - path: scripts/download_ukdale.sh
+      md5: 80084139f76ea140b561818b25eb3687
+      size: 332
+    outs:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+  kettle_train:
+    cmd: bash scripts/train_appliance.sh kettle
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: image/image.lock
+      md5: 5758b139f7b924725170a77578fd5a03
+      size: 581
+    - path: scripts/train_appliance.sh
+      md5: 785653f85df8918fdcd894d73b6603d5
+      size: 519
+    outs:
+    - path: models/kettle.hdf5
+      md5: 247bbe431fa61f57da6944f4fd42e5bb
+      size: 368575488
+  washingmachine_train:
+    cmd: bash scripts/train_appliance.sh washingmachine
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: image/image.lock
+      md5: 5758b139f7b924725170a77578fd5a03
+      size: 581
+    - path: scripts/train_appliance.sh
+      md5: 785653f85df8918fdcd894d73b6603d5
+      size: 519
+    outs:
+    - path: models/washingmachine.hdf5
+      md5: 47248b8017e27560f89dbf34e3c32231
+      size: 368575488
+  microwave_train:
+    cmd: bash scripts/train_appliance.sh microwave
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: image/image.lock
+      md5: 5758b139f7b924725170a77578fd5a03
+      size: 581
+    - path: scripts/train_appliance.sh
+      md5: 785653f85df8918fdcd894d73b6603d5
+      size: 519
+    outs:
+    - path: models/microwave.hdf5
+      md5: 69f51808eadd9061fb4e8916b6414f7d
+      size: 368575488
+  fridge_train:
+    cmd: bash scripts/train_appliance.sh fridge
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: image/image.lock
+      md5: 5758b139f7b924725170a77578fd5a03
+      size: 581
+    - path: scripts/train_appliance.sh
+      md5: 785653f85df8918fdcd894d73b6603d5
+      size: 519
+    outs:
+    - path: models/fridge.hdf5
+      md5: 71558a20573292d2ecbf0ba95431610d
+      size: 368575488
+  dishwasher_train:
+    cmd: bash scripts/train_appliance.sh dishwasher
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: image/image.lock
+      md5: 5758b139f7b924725170a77578fd5a03
+      size: 581
+    - path: scripts/train_appliance.sh
+      md5: 785653f85df8918fdcd894d73b6603d5
+      size: 519
+    outs:
+    - path: models/dishwasher.hdf5
+      md5: ac50260a8bc682c79a49a311468caccf
+      size: 368575488
+  washingmachine_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz washingmachine
+      models/washingmachine.hdf5 --save data/washingmachine_embed_test.npz -s test
+      -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/washingmachine.hdf5
+      md5: 47248b8017e27560f89dbf34e3c32231
+      size: 368575488
+    outs:
+    - path: data/washingmachine_embed_test.npz
+      md5: 7b0d3838ea09aae3c9506f207386f3a6
+      size: 23193420
+  microwave_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz microwave
+      models/microwave.hdf5 --save data/microwave_embed_val.npz -s val -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/microwave.hdf5
+      md5: 69f51808eadd9061fb4e8916b6414f7d
+      size: 368575488
+    outs:
+    - path: data/microwave_embed_val.npz
+      md5: 5e91e3e93f86ef66fad6e326ecabb337
+      size: 17549136
+  dishwasher_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz dishwasher
+      models/dishwasher.hdf5 --save data/dishwasher_embed_test.npz -s test -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/dishwasher.hdf5
+      md5: ac50260a8bc682c79a49a311468caccf
+      size: 368575488
+    outs:
+    - path: data/dishwasher_embed_test.npz
+      md5: 026e7921cbfd7cf9ab7230e5202a8d7a
+      size: 23193420
+  microwave_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz microwave
+      models/microwave.hdf5 --save data/microwave_embed_test.npz -s test -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/microwave.hdf5
+      md5: 69f51808eadd9061fb4e8916b6414f7d
+      size: 368575488
+    outs:
+    - path: data/microwave_embed_test.npz
+      md5: 280013f8e025032f1a58fe7457ca7459
+      size: 23193420
+  washingmachine_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz washingmachine
+      models/washingmachine.hdf5 --save data/washingmachine_embed_val.npz -s val -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/washingmachine.hdf5
+      md5: 47248b8017e27560f89dbf34e3c32231
+      size: 368575488
+    outs:
+    - path: data/washingmachine_embed_val.npz
+      md5: de3559782aa621a820024a7abbbf3514
+      size: 17549136
+  dishwasher_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz dishwasher
+      models/dishwasher.hdf5 --save data/dishwasher_embed_val.npz -s val -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/dishwasher.hdf5
+      md5: ac50260a8bc682c79a49a311468caccf
+      size: 368575488
+    outs:
+    - path: data/dishwasher_embed_val.npz
+      md5: 7fa948a4f61e0d9be2f092cf057ba454
+      size: 17549136
+  fridge_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz fridge
+      models/fridge.hdf5 --save data/fridge_embed_val.npz -s val -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/fridge.hdf5
+      md5: 71558a20573292d2ecbf0ba95431610d
+      size: 368575488
+    outs:
+    - path: data/fridge_embed_val.npz
+      md5: ebaff3cb4f34567f8303b1b1ab9001b5
+      size: 17549136
+  kettle_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz kettle
+      models/kettle.hdf5 --save data/kettle_embed_val.npz -s val -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/kettle.hdf5
+      md5: 247bbe431fa61f57da6944f4fd42e5bb
+      size: 368575488
+    outs:
+    - path: data/kettle_embed_val.npz
+      md5: ff041183642ebd3deee86926fbc921c5
+      size: 23538000
+  fridge_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz fridge
+      models/fridge.hdf5 --save data/fridge_embed_test.npz -s test -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/fridge.hdf5
+      md5: 71558a20573292d2ecbf0ba95431610d
+      size: 368575488
+    outs:
+    - path: data/fridge_embed_test.npz
+      md5: 7e9c83ba77a5c946f6fd433851688b30
+      size: 23193420
+  kettle_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz kettle
+      models/kettle.hdf5 --save data/kettle_embed_test.npz -s test -v
+    deps:
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: models/kettle.hdf5
+      md5: 247bbe431fa61f57da6944f4fd42e5bb
+      size: 368575488
+    outs:
+    - path: data/kettle_embed_test.npz
+      md5: 917bea47782513ddfbc5b9d2f71c48ad
+      size: 23193420
+  sample_evaluation_val:
+    cmd: singularity run image/image.sif bash scripts/ukdale_evaluation.sh val metrics_val
+    deps:
+    - path: data/dishwasher_embed_val.npz
+      md5: 7fa948a4f61e0d9be2f092cf057ba454
+      size: 17549136
+    - path: data/fridge_embed_val.npz
+      md5: ebaff3cb4f34567f8303b1b1ab9001b5
+      size: 17549136
+    - path: data/kettle_embed_val.npz
+      md5: ff041183642ebd3deee86926fbc921c5
+      size: 23538000
+    - path: data/microwave_embed_val.npz
+      md5: 5e91e3e93f86ef66fad6e326ecabb337
+      size: 17549136
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: data/washingmachine_embed_val.npz
+      md5: de3559782aa621a820024a7abbbf3514
+      size: 17549136
+    - path: scripts/evaluate.py
+      md5: 57a4f7da4c92e849d82393d9a1046824
+      size: 22777
+    - path: scripts/runs_val.sh
+      md5: 1007a82b41e1b17dfe16ee238e0abf56
+      size: 356
+    - path: scripts/ukdale_evaluation.sh
+      md5: 8b66670599c108b3cfe3aef89121c5fa
+      size: 136
+    outs:
+    - path: metrics_val.csv
+      md5: 2027d1d67345528b1fac433b5f524a1d
+      size: 64
+  sample_evaluation_test:
+    cmd: singularity run image/image.sif bash scripts/ukdale_evaluation.sh test metrics_test
+    deps:
+    - path: data/dishwasher_embed_test.npz
+      md5: 026e7921cbfd7cf9ab7230e5202a8d7a
+      size: 23193420
+    - path: data/fridge_embed_test.npz
+      md5: 7e9c83ba77a5c946f6fd433851688b30
+      size: 23193420
+    - path: data/kettle_embed_test.npz
+      md5: 917bea47782513ddfbc5b9d2f71c48ad
+      size: 23193420
+    - path: data/microwave_embed_test.npz
+      md5: 280013f8e025032f1a58fe7457ca7459
+      size: 23193420
+    - path: data/ukdale.npz
+      md5: 5637f52c1366af4736832fea0ac98644
+      size: 247050314
+    - path: data/washingmachine_embed_test.npz
+      md5: 7b0d3838ea09aae3c9506f207386f3a6
+      size: 23193420
+    - path: scripts/evaluate.py
+      md5: d81fc129a5b7de2661c725da5fb57b36
+      size: 22772
+    - path: scripts/runs_test.sh
+      md5: e7875cbf6b34bc60909bd3305dc0d3bb
+      size: 357
+    - path: scripts/ukdale_evaluation.sh
+      md5: 8b66670599c108b3cfe3aef89121c5fa
+      size: 136
+    outs:
+    - path: metrics_test.csv
+      md5: 2027d1d67345528b1fac433b5f524a1d
+      size: 64

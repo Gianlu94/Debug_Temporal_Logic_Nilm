@@ -1,0 +1,17 @@
+{
+    "executable": "/opt/or-tools_flatzinc_Ubuntu-21.10-64bit_v9.2.9972/bin/fzn-or-tools",
+    "id": "com.google.or-tools",
+    "isGUIApplication": false,
+    "mznlib": "/opt/or-tools_flatzinc_Ubuntu-21.10-64bit_v9.2.9972/share/minizinc",
+    "name": "or-tools",
+    "needsSolns2Out": true,
+    "stdFlags": [
+        "-a",
+        "-p",
+        "-s",
+        "-v",
+        "-f"
+    ],
+    "supportsMzn": false,
+    "version": "9.2"
+}

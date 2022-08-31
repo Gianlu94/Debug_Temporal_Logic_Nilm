@@ -1,0 +1,178 @@
+stages:
+  image_build:
+    cmd: singularity build --fakeroot -F image/image.sif container/env.def && cp container/env.def
+      image/image.lock
+    deps:
+    - container/com.google.or-tools.msc
+    - container/env.def
+    outs:
+    - image/image.lock
+  ukdale_preproc:
+    cmd: singularity run image/image.sif bash scripts/download_ukdale.sh
+    deps:
+    - deps/seq2point/scripts/ukdale_dataset_extraction.py
+    - image/image.lock
+    - scripts/download_ukdale.sh
+    outs:
+    - data/ukdale.npz
+  kettle_train:
+    cmd: bash scripts/train_appliance.sh kettle
+    deps:
+    - data/ukdale.npz
+    - image/image.lock
+    - scripts/train_appliance.sh
+    outs:
+    - models/kettle.hdf5
+  fridge_train:
+    cmd: bash scripts/train_appliance.sh fridge
+    deps:
+    - data/ukdale.npz
+    - image/image.lock
+    - scripts/train_appliance.sh
+    outs:
+    - models/fridge.hdf5
+  microwave_train:
+    cmd: bash scripts/train_appliance.sh microwave
+    deps:
+    - data/ukdale.npz
+    - image/image.lock
+    - scripts/train_appliance.sh
+    outs:
+    - models/microwave.hdf5
+  dishwasher_train:
+    cmd: bash scripts/train_appliance.sh dishwasher
+    deps:
+    - data/ukdale.npz
+    - image/image.lock
+    - scripts/train_appliance.sh
+    outs:
+    - models/dishwasher.hdf5
+  washingmachine_train:
+    cmd: bash scripts/train_appliance.sh washingmachine
+    deps:
+    - data/ukdale.npz
+    - image/image.lock
+    - scripts/train_appliance.sh
+    outs:
+    - models/washingmachine.hdf5
+  kettle_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz kettle
+      models/kettle.hdf5 --save data/kettle_embed_val.npz -s val -v
+    deps:
+      - data/ukdale.npz
+      - models/kettle.hdf5
+    outs:
+      - data/kettle_embed_val.npz
+  fridge_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz fridge
+      models/fridge.hdf5 --save data/fridge_embed_val.npz -s val -v
+    deps:
+      - data/ukdale.npz
+      - models/fridge.hdf5
+    outs:
+      - data/fridge_embed_val.npz
+  microwave_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz microwave
+      models/microwave.hdf5 --save data/microwave_embed_val.npz -s val -v
+    deps:
+      - data/ukdale.npz
+      - models/microwave.hdf5
+    outs:
+      - data/microwave_embed_val.npz
+  dishwasher_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz dishwasher
+      models/dishwasher.hdf5 --save data/dishwasher_embed_val.npz -s val -v
+    deps:
+      - data/ukdale.npz
+      - models/dishwasher.hdf5
+    outs:
+      - data/dishwasher_embed_val.npz
+  washingmachine_embed_val:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz washingmachine
+      models/washingmachine.hdf5 --save data/washingmachine_embed_val.npz -s val -v
+    deps:
+      - data/ukdale.npz
+      - models/washingmachine.hdf5
+    outs:
+      - data/washingmachine_embed_val.npz
+  kettle_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz kettle
+      models/kettle.hdf5 --save data/kettle_embed_test.npz -s test -v
+    deps:
+    - data/ukdale.npz
+    - models/kettle.hdf5
+    outs:
+    - data/kettle_embed_test.npz
+  fridge_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz fridge
+      models/fridge.hdf5 --save data/fridge_embed_test.npz -s test -v
+    deps:
+    - data/ukdale.npz
+    - models/fridge.hdf5
+    outs:
+    - data/fridge_embed_test.npz
+  microwave_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz microwave
+      models/microwave.hdf5 --save data/microwave_embed_test.npz -s test -v
+    deps:
+    - data/ukdale.npz
+    - models/microwave.hdf5
+    outs:
+    - data/microwave_embed_test.npz
+  dishwasher_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz dishwasher
+      models/dishwasher.hdf5 --save data/dishwasher_embed_test.npz -s test -v
+    deps:
+    - data/ukdale.npz
+    - models/dishwasher.hdf5
+    outs:
+    - data/dishwasher_embed_test.npz
+  washingmachine_embed_test:
+    cmd: export PYTHONPATH=deps/seq2point/src ; singularity exec  --nv docker://tensorflow/tensorflow:2.8.0-gpu
+      /usr/bin/python3 deps/seq2point/scripts/test_seq2point.py data/ukdale.npz washingmachine
+      models/washingmachine.hdf5 --save data/washingmachine_embed_test.npz -s test -v
+    deps:
+    - data/ukdale.npz
+    - models/washingmachine.hdf5
+    outs:
+    - data/washingmachine_embed_test.npz
+
+  sample_evaluation_val:
+    cmd: singularity run image/image.sif bash scripts/ukdale_evaluation.sh val metrics_val
+    deps:
+    - data/ukdale.npz
+    - data/washingmachine_embed_val.npz
+    - data/dishwasher_embed_val.npz
+    - data/microwave_embed_val.npz
+    - data/fridge_embed_val.npz
+    - data/kettle_embed_val.npz
+    - scripts/ukdale_evaluation.sh
+    - scripts/runs_val.sh
+    - scripts/evaluate.py
+    outs:
+    - metrics_val.csv
+
+  sample_evaluation_test:
+    cmd: singularity run image/image.sif bash scripts/ukdale_evaluation.sh test metrics_test
+    deps:
+      - data/ukdale.npz
+      - data/washingmachine_embed_test.npz
+      - data/dishwasher_embed_test.npz
+      - data/microwave_embed_test.npz
+      - data/fridge_embed_test.npz
+      - data/kettle_embed_test.npz
+      - scripts/ukdale_evaluation.sh
+      - scripts/runs_test.sh
+      - scripts/evaluate.py
+    outs:
+      - metrics_test.csv
+
